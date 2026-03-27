@@ -64,6 +64,8 @@ export class OAuthService {
 
     // Store state in sessionStorage for CSRF verification (not the token!)
     sessionStorage.setItem('oauth_state', state);
+    sessionStorage.setItem('code_verifier', verifier);
+
 
     const authUrl = `${environment.authUrl}/oauth2/authorize?${params}`;
     window.location.href = authUrl;
@@ -81,7 +83,7 @@ export class OAuthService {
       .set('code_verifier', verifier);
 
     return this.http.post<TokenResponse>(
-      `${environment.authUrl}/oauth2/token`,
+      `/oauth2/token`,
       body.toString(),
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
     );
@@ -127,7 +129,7 @@ export class OAuthService {
   /** Verify state to prevent CSRF */
   verifyState(returnedState: string): boolean {
     const stored = sessionStorage.getItem('oauth_state');
-    sessionStorage.removeItem('oauth_state');
+    // sessionStorage.removeItem('oauth_state');
     return stored === returnedState;
   }
 }

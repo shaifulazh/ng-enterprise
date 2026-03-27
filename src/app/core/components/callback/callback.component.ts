@@ -36,7 +36,7 @@ export class CallbackComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParams.pipe(take(1)).subscribe(params => {
       const code  = params['code']  as string | undefined;
-      const state = params['state'] as string | undefined;
+      const callbackState = params['state'] as string | undefined;
       const err   = params['error'] as string | undefined;
 
       if (err) {
@@ -44,14 +44,14 @@ export class CallbackComponent implements OnInit {
         return;
       }
 
-      if (!code || !state) {
+      if (!code || !callbackState) {
         this.error = 'Invalid callback — missing code or state.';
         return;
       }
-      console.log("callback fired",code,state)
+      console.log("callback fired",code,callbackState)
 
 
-      this.store.dispatch(AuthActions.exchangeCodeForToken({ code, state }));
+      this.store.dispatch(AuthActions.exchangeCodeForToken({ code, callbackState }));
     });
   }
 }

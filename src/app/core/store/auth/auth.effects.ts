@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { EMPTY, of, Subject } from 'rxjs';
+import { defer, EMPTY, of, Subject } from 'rxjs';
 import {
   catchError,
   exhaustMap,
@@ -35,20 +35,37 @@ export class AuthEffects {
         exhaustMap(async () => {
           const verifier = await this.oauth.initiateAuthorizationCodeFlow();
           // Store verifier in NgRx (memory only) before browser redirects
-          this.store.dispatch(AuthActions.setPkceVerifier({ verifier }));
+          // this.store.dispatch(AuthActions.setPkceVerifier({ verifier }));
         }),
       ),
     { dispatch: false },
   );
 
+  // exchangeCode$ = createEffect(
+  //   () =>
+  //     this.actions$.pipe(
+  //       ofType(AuthActions.exchangeCodeForToken),
+  //       withLatestFrom(this.store.select(selectPkceVerifier)),
+  //       switchMap(([{ code, callbackState }, verifier]) => {
+  //         console.log("checking exchange code for token")
+  //         return null;
+  //       }),
+  //     ),
+  //   { dispatch: false },
+  // );
+
   /** Exchange authorization code for access token */
   exchangeCode$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.exchangeCodeForToken),
-      withLatestFrom(this.store.select(selectPkceVerifier)),
-      filter(([, verifier]) => verifier !== null),
-      switchMap(([{ code, state }, verifier]) => {
-        if (!this.oauth.verifyState(state)) {
+      switchMap(({code, callbackState}) =>
+        defer(() => {
+          const verifier = sessionStorage.getItem('code_verifier');
+          return verifier ? of({ code,callbackState, verifier }) : EMPTY;
+        })
+      ),
+      switchMap(({code,callbackState,verifier}) => {
+        if (!this.oauth.verifyState(callbackState)) {
           return of(AuthActions.exchangeCodeForTokenFailure({
             error: 'State mismatch — possible CSRF attack',
           }));
@@ -76,13 +93,14 @@ export class AuthEffects {
           ),
           catchError(err =>
             of(AuthActions.exchangeCodeForTokenFailure({
-              error: err.message ?? 'Token exchange failed',
+              error: err.message + 'Token exchange failed',
             })),
           ),
         );
       }),
     ),
   );
+
 
   /** Persist token in service after successful exchange */
   storeTokenAfterExchange$ = createEffect(

@@ -58,7 +58,6 @@ export class AuthEffects {
           switchMap(tokenResponse =>
             this.oauth.getUserInfo(tokenResponse.access_token).pipe(
               map(userInfo => {
-                console.log("from")
                 const user: User = {
                   sub:     userInfo['sub'] as string,
                   email:   userInfo['email'] as string,

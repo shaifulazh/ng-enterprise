@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, inject, Output, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { LayoutActions } from '../../core/store/layout/layout.actions';
@@ -6,6 +6,7 @@ import { SettingsActions } from '../../core/store/settings/settings.actions';
 import { AuthActions } from '../../core/store/auth/auth.actions';
 import { selectUserDisplayName, selectUserInitials } from '../../core/store/auth/auth.selectors';
 import { selectIsDarkMode } from '../../core/store/settings/settings.reducer';
+import { filter, fromEvent, Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-top-navbar',
@@ -55,13 +56,13 @@ import { selectIsDarkMode } from '../../core/store/settings/settings.reducer';
         </button>
 
         <!-- Notifications -->
-        <button class="btn-ghost p-2 relative" aria-label="Notifications">
+        <!-- <button class="btn-ghost p-2 relative" aria-label="Notifications">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
           </svg>
           <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full"></span>
-        </button>
+        </button> -->
 
         <!-- Profile dropdown -->
         <div class="relative ml-1">
@@ -111,8 +112,12 @@ import { selectIsDarkMode } from '../../core/store/settings/settings.reducer';
     </header>
   `,
 })
+
+
 export class TopNavbarComponent {
   private readonly store = inject(Store);
+  private destroy$ = new Subject<void>();
+  private el = inject(ElementRef);
 
   readonly profileOpen  = signal(false);
   readonly isDark       = toSignal(this.store.select(selectIsDarkMode), { initialValue: false });
@@ -152,5 +157,20 @@ export class TopNavbarComponent {
     if (action === 'logout') {
       this.store.dispatch(AuthActions.logout());
     }
+  }
+
+  ngOnInit() {
+    fromEvent<MouseEvent>(document, 'click').pipe(
+      filter(event => !this.el.nativeElement.contains(event.target)), // click outside
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.profileOpen.set(false)); // ✅ update signal
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+   toggleDropdown() {
+    this.profileOpen.update(open => !open); // toggle
   }
 }

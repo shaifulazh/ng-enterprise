@@ -114,12 +114,22 @@ export class ModuleAEffects {
   );
 }
 
-const MOCK_ITEMS_A: ItemA[] = [
-  { id: '1', name: 'Item Alpha',   description: 'First item in Module A',  status: 'active',   createdAt: '2025-01-15' },
-  { id: '2', name: 'Item Beta',    description: 'Second item in Module A', status: 'pending',  createdAt: '2025-02-20' },
-  { id: '3', name: 'Item Gamma',   description: 'Third item in Module A',  status: 'active',   createdAt: '2025-03-05' },
-  { id: '4', name: 'Item Delta',   description: 'Fourth item in Module A', status: 'inactive', createdAt: '2025-03-18' },
-];
+const statuses: ItemA['status'][] = ['active', 'pending', 'inactive'];
+
+const MOCK_ITEMS_A: ItemA[] = Array.from({ length: 200 }, (_, i) => {
+  const index = i + 1; // start from 1
+  const status = statuses[i % statuses.length]; // rotate statuses
+  const month = String((i % 12) + 1).padStart(2, '0'); // months 01–12
+  const day = String((i % 28) + 1).padStart(2, '0'); // days 01–28
+
+  return {
+    id: String(index),
+    name: `Item ${index}`,
+    description: `Item number ${index} in Module A`,
+    status,
+    createdAt: `2025-${month}-${day}`,
+  };
+});
 
 // ── component ─────────────────────────────────────────────────────────────────
 @Component({

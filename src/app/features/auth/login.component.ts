@@ -45,7 +45,7 @@ import { interval } from 'rxjs';
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
               </svg>
             </div>
-            <span class="font-semibold text-lg text-slate-900 dark:text-white">Enterprise dd{{ isLoading() }}</span>
+            <span class="font-semibold text-lg text-slate-900 dark:text-white">Enterprise {{ isLoading() }}</span>
           </div>
 
           <div>
@@ -66,7 +66,7 @@ import { interval } from 'rxjs';
             
             (click)="login()"
           >
-            @if (isLoading()== 'idle') {
+            @if (isLoading()) {
               <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>

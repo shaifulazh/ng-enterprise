@@ -78,7 +78,7 @@ export class AuthEffects {
                 const user: User = {
                   sub:     userInfo['sub'] as string,
                   email:   userInfo['email'] as string,
-                  name:    userInfo['name'] as string,
+                  name:    userInfo['username'] as string,
                   picture: userInfo['picture'] as string | undefined,
                   roles:   (userInfo['roles'] as string[]) ?? [],
                 };

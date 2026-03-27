@@ -34,7 +34,7 @@ const NAV_ITEMS: NavItem[] = [
 
     <!-- Sidebar panel -->
     <aside
-      class="fixed inset-y-0 left-0 z-30 flex flex-col bg-white dark:bg-surface-dark-secondary border-r border-slate-200 dark:border-slate-700/60 sidebar-transition
+      class="fixed inset-y-0 left-0 h-screen z-30 flex flex-col bg-white dark:bg-surface-dark-secondary border-r border-slate-200 dark:border-slate-700/60 sidebar-transition
              lg:relative lg:z-auto lg:translate-x-0"
       [class.w-64]="!collapsed()"
       [class.w-16]="collapsed()"

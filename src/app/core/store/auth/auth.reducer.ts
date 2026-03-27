@@ -16,7 +16,7 @@ export const authReducer = createReducer<AuthState>(
     pkceVerifier: verifier,
   })),
 
-  on(AuthActions.exchangeCodeForToken, (state,{code,callbackState}) => ({
+  on(AuthActions.exchangeCodeForToken, (state) => ({
     ...state,
     status: 'loading' as const,
     error: null,

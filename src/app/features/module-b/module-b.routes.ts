@@ -10,7 +10,9 @@ import { Store } from '@ngrx/store';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { of } from 'rxjs';
 import { switchMap, map, catchError } from 'rxjs/operators';
+import { I18nService } from '../../core/i18n/i18n.service';
 
+// ── Model ─────────────────────────────────────────────────────────────────────
 export interface ModuleBItem {
   id:       string;
   title:    string;
@@ -20,46 +22,45 @@ export interface ModuleBItem {
 }
 
 export interface ModuleBState {
-  items:        ModuleBItem[];
-  loading:      boolean;
-  error:        string | null;
+  items:          ModuleBItem[];
+  loading:        boolean;
+  error:          string | null;
   filterCategory: string | null;
 }
 
-const initialState: ModuleBState = {
-  items:          [],
-  loading:        false,
-  error:          null,
-  filterCategory: null,
-};
+const initialState: ModuleBState = { items: [], loading: false, error: null, filterCategory: null };
 
+// ── Actions ───────────────────────────────────────────────────────────────────
 export const ModuleBActions = createActionGroup({
   source: 'Module B',
   events: {
-    'Load':           emptyProps(),
-    'Load Success':   props<{ items: ModuleBItem[] }>(),
-    'Load Failure':   props<{ error: string }>(),
-    'Set Filter':     props<{ category: string | null }>(),
+    'Load':         emptyProps(),
+    'Load Success': props<{ items: ModuleBItem[] }>(),
+    'Load Failure': props<{ error: string }>(),
+    'Set Filter':   props<{ category: string | null }>(),
   },
 });
 
+// ── Reducer ───────────────────────────────────────────────────────────────────
 export const moduleBReducer = createReducer<ModuleBState>(
   initialState,
-  on(ModuleBActions.load, state => ({ ...state, loading: true, error: null })),
+  on(ModuleBActions.load,        state => ({ ...state, loading: true, error: null })),
   on(ModuleBActions.loadSuccess, (state, { items }) => ({ ...state, items, loading: false })),
   on(ModuleBActions.loadFailure, (state, { error }) => ({ ...state, loading: false, error })),
-  on(ModuleBActions.setFilter, (state, { category }) => ({ ...state, filterCategory: category })),
+  on(ModuleBActions.setFilter,   (state, { category }) => ({ ...state, filterCategory: category })),
 );
 
+// ── Selectors ─────────────────────────────────────────────────────────────────
 const selectModuleBState = createFeatureSelector<ModuleBState>('moduleB');
-export const selectBItems = createSelector(selectModuleBState, s => s.items);
-export const selectBLoading = createSelector(selectModuleBState, s => s.loading);
-export const selectBFilter = createSelector(selectModuleBState, s => s.filterCategory);
+export const selectBItems        = createSelector(selectModuleBState, s => s.items);
+export const selectBLoading      = createSelector(selectModuleBState, s => s.loading);
+export const selectBFilter       = createSelector(selectModuleBState, s => s.filterCategory);
 export const selectFilteredBItems = createSelector(
   selectBItems, selectBFilter,
   (items, filter) => filter ? items.filter(i => i.category === filter) : items,
 );
 
+// ── Mock data ─────────────────────────────────────────────────────────────────
 const MOCK_B: ModuleBItem[] = [
   { id: '1', title: 'Database Migration', category: 'Infrastructure', value: 12500, date: '2025-03-01' },
   { id: '2', title: 'API Gateway Setup',  category: 'Infrastructure', value: 8200,  date: '2025-03-05' },
@@ -69,6 +70,7 @@ const MOCK_B: ModuleBItem[] = [
   { id: '6', title: 'Component Library',  category: 'Frontend',       value: 11200, date: '2025-03-22' },
 ];
 
+// ── Effects ───────────────────────────────────────────────────────────────────
 @Injectable()
 export class ModuleBEffects {
   private readonly actions$ = inject(Actions);
@@ -76,41 +78,46 @@ export class ModuleBEffects {
   load$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ModuleBActions.load),
-      switchMap(() => of(MOCK_B).pipe()),
-      map(items => ModuleBActions.loadSuccess({ items })),
-      catchError(err => of(ModuleBActions.loadFailure({ error: err.message }))),
+      switchMap(() =>
+        of(MOCK_B).pipe(
+          map(items => ModuleBActions.loadSuccess({ items })),
+          catchError(err => of(ModuleBActions.loadFailure({ error: err.message }))),
+        ),
+      ),
     ),
   );
 }
 
+// ── Component ─────────────────────────────────────────────────────────────────
 @Component({
   selector: 'app-module-b',
   standalone: true,
   template: `
     <div class="max-w-7xl mx-auto space-y-6 animate-fade-in">
 
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Module B</h1>
-          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Track and manage Module B data.</p>
-        </div>
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ t().moduleB.title }}</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ t().moduleB.subtitle }}</p>
       </div>
 
       <!-- Category filter pills -->
       <div class="flex gap-2 flex-wrap">
         @for (cat of categories; track cat) {
           <button
-            class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors border"
-            [class.bg-brand-600]="activeFilter() === (cat === 'All' ? null : cat)"
-            [class.text-white]="activeFilter() === (cat === 'All' ? null : cat)"
-            [class.border-brand-600]="activeFilter() === (cat === 'All' ? null : cat)"
-            [class.border-slate-200]="activeFilter() !== (cat === 'All' ? null : cat)"
-            [class.text-slate-600]="activeFilter() !== (cat === 'All' ? null : cat)"
-            [class.dark:border-slate-600]="activeFilter() !== (cat === 'All' ? null : cat)"
-            [class.dark:text-slate-400]="activeFilter() !== (cat === 'All' ? null : cat)"
-            (click)="setFilter(cat === 'All' ? null : cat)"
+            class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 border"
+            [class.bg-brand-600]="isActive(cat)"
+            [class.text-white]="isActive(cat)"
+            [class.border-brand-600]="isActive(cat)"
+            [class.shadow-sm]="isActive(cat)"
+            [class.bg-white]="!isActive(cat)"
+            [class.dark:bg-surface-dark-secondary]="!isActive(cat)"
+            [class.border-slate-200]="!isActive(cat)"
+            [class.dark:border-slate-600]="!isActive(cat)"
+            [class.text-slate-600]="!isActive(cat)"
+            [class.dark:text-slate-400]="!isActive(cat)"
+            (click)="setFilter(cat)"
           >
-            {{ cat }}
+            {{ cat === 'All' ? t().common.all : cat }}
           </button>
         }
       </div>
@@ -122,26 +129,32 @@ export class ModuleBEffects {
             <div class="card p-5 space-y-3 animate-pulse">
               <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-2/3"></div>
               <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
-              <div class="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mt-4"></div>
+              <div class="h-7 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mt-4"></div>
             </div>
           }
+        } @else if (filteredItems().length === 0) {
+          <div class="col-span-full py-16 text-center">
+            <p class="text-slate-400 text-sm">{{ t().common.none }}</p>
+          </div>
         } @else {
           @for (item of filteredItems(); track item.id) {
-            <div class="card p-5 hover:shadow-md transition-shadow">
-              <div class="flex items-start justify-between">
-                <div class="min-w-0">
-                  <p class="font-medium text-slate-900 dark:text-white truncate">{{ item.title }}</p>
-                  <span class="badge badge-blue mt-1">{{ item.category }}</span>
+            <div class="card p-5 hover:shadow-md transition-shadow duration-200 cursor-pointer group">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                  <p class="font-semibold text-slate-900 dark:text-white truncate group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                    {{ item.title }}
+                  </p>
+                  <span class="badge badge-blue mt-1.5">{{ item.category }}</span>
                 </div>
               </div>
-              <div class="mt-4 flex items-end justify-between">
+              <div class="mt-5 flex items-end justify-between">
                 <div>
-                  <p class="text-xs text-slate-400">Value</p>
-                  <p class="text-xl font-bold text-slate-900 dark:text-white">
+                  <p class="text-xs text-slate-400 mb-0.5">{{ t().moduleB.colValue }}</p>
+                  <p class="text-xl font-bold text-slate-900 dark:text-white tabular-nums">
                     RM {{ item.value.toLocaleString() }}
                   </p>
                 </div>
-                <p class="text-xs text-slate-400">{{ item.date }}</p>
+                <p class="text-xs text-slate-400 tabular-nums">{{ item.date }}</p>
               </div>
             </div>
           }
@@ -153,22 +166,29 @@ export class ModuleBEffects {
 })
 export class ModuleBComponent implements OnInit {
   private readonly store = inject(Store);
+  readonly i18n          = inject(I18nService);
 
   readonly filteredItems = toSignal(this.store.select(selectFilteredBItems), { initialValue: [] as ModuleBItem[] });
-  readonly loading       = toSignal(this.store.select(selectBLoading), { initialValue: true });
-  readonly activeFilter  = toSignal(this.store.select(selectBFilter), { initialValue: null as string | null });
+  readonly loading       = toSignal(this.store.select(selectBLoading),       { initialValue: true });
+  readonly activeFilter  = toSignal(this.store.select(selectBFilter),        { initialValue: null as string | null });
+  readonly t             = this.i18n.t;
 
   readonly categories = ['All', 'Infrastructure', 'Frontend', 'Security'];
 
-  ngOnInit(): void {
-    this.store.dispatch(ModuleBActions.load());
+  ngOnInit(): void { this.store.dispatch(ModuleBActions.load()); }
+
+  isActive(cat: string): boolean {
+    return cat === 'All'
+      ? this.activeFilter() === null
+      : this.activeFilter() === cat;
   }
 
-  setFilter(cat: string | null): void {
-    this.store.dispatch(ModuleBActions.setFilter({ category: cat }));
+  setFilter(cat: string): void {
+    this.store.dispatch(ModuleBActions.setFilter({ category: cat === 'All' ? null : cat }));
   }
 }
 
+// ── Routes ────────────────────────────────────────────────────────────────────
 export const moduleBRoutes: Routes = [
   {
     path: '',

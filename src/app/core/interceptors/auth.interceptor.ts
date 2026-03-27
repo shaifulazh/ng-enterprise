@@ -27,8 +27,8 @@ export const authInterceptor: HttpInterceptorFn = (
   const authReq = token ? addBearerToken(req, token) : req;
 
   return next(authReq).pipe(
-    catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
+    catchError((error: unknown) => {
+      if (error instanceof HttpErrorResponse && error.status === 401) {
         return handle401(req, next, store, tokenService);
       }
       return throwError(() => error);

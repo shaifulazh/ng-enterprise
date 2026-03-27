@@ -35,37 +35,24 @@ export class AuthEffects {
         exhaustMap(async () => {
           const verifier = await this.oauth.initiateAuthorizationCodeFlow();
           // Store verifier in NgRx (memory only) before browser redirects
-          // this.store.dispatch(AuthActions.setPkceVerifier({ verifier }));
+          this.store.dispatch(AuthActions.setPkceVerifier({ verifier }));
         }),
       ),
     { dispatch: false },
   );
 
-  // exchangeCode$ = createEffect(
-  //   () =>
-  //     this.actions$.pipe(
-  //       ofType(AuthActions.exchangeCodeForToken),
-  //       withLatestFrom(this.store.select(selectPkceVerifier)),
-  //       switchMap(([{ code, callbackState }, verifier]) => {
-  //         console.log("checking exchange code for token")
-  //         return null;
-  //       }),
-  //     ),
-  //   { dispatch: false },
-  // );
-
   /** Exchange authorization code for access token */
   exchangeCode$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.exchangeCodeForToken),
-      switchMap(({code, callbackState}) =>
+      switchMap(({code, state}) =>
         defer(() => {
           const verifier = sessionStorage.getItem('code_verifier');
-          return verifier ? of({ code,callbackState, verifier }) : EMPTY;
+          return verifier ? of({ code,state, verifier }) : EMPTY;
         })
       ),
-      switchMap(({code,callbackState,verifier}) => {
-        if (!this.oauth.verifyState(callbackState)) {
+      switchMap(({code,state,verifier}) => {
+        if (!this.oauth.verifyState(state)) {
           return of(AuthActions.exchangeCodeForTokenFailure({
             error: 'State mismatch — possible CSRF attack',
           }));
@@ -93,14 +80,13 @@ export class AuthEffects {
           ),
           catchError(err =>
             of(AuthActions.exchangeCodeForTokenFailure({
-              error: err.message + 'Token exchange failed',
+              error: err.message ?? 'Token exchange failed',
             })),
           ),
         );
       }),
     ),
   );
-
 
   /** Persist token in service after successful exchange */
   storeTokenAfterExchange$ = createEffect(

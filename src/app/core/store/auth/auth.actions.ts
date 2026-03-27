@@ -9,7 +9,7 @@ export const AuthActions = createActionGroup({
     'Set Pkce Verifier': props<{ verifier: string }>(),
 
     // Authorization code → token exchange
-    'Exchange Code For Token': props<{ code: string; callbackState: string }>(),
+    'Exchange Code For Token': props<{ code: string; state: string }>(),
     'Exchange Code For Token Success': props<{
       accessToken: string;
       expiresIn:   number; // seconds

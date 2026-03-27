@@ -66,7 +66,6 @@ export class OAuthService {
     sessionStorage.setItem('oauth_state', state);
     sessionStorage.setItem('code_verifier', verifier);
 
-
     const authUrl = `${environment.authUrl}/oauth2/authorize?${params}`;
     window.location.href = authUrl;
 
@@ -96,7 +95,7 @@ export class OAuthService {
       .set('client_id',  environment.clientId);
 
     return this.http.post<TokenResponse>(
-      `/oauth2/token`,
+      `${environment.authUrl}/oauth2/token`,
       body.toString(),
       {
         headers:      { 'Content-Type': 'application/x-www-form-urlencoded' },

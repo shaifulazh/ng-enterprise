@@ -1,6 +1,6 @@
 // settings.state.ts
 export type Theme    = 'light' | 'dark' | 'system';
-export type Language = 'en' | 'ms' | 'zh';
+export type Language = 'en' | 'ms';
 
 export interface SettingsState {
   theme:    Theme;

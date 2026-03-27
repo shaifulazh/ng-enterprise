@@ -15,6 +15,7 @@ import { AuthEffects } from './core/store/auth/auth.effects';
 import { SettingsEffects } from './core/store/settings/settings.effects';
 import { CustomRouterSerializer } from './core/store/router/router.serializer';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,7 +26,7 @@ export const appConfig: ApplicationConfig = {
     ),
 
     provideHttpClient(
-      withInterceptors([authInterceptor]),
+      withInterceptors([loadingInterceptor, authInterceptor]),
     ),
 
     provideStore({

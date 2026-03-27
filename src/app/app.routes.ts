@@ -48,6 +48,12 @@ export const appRoutes: Routes = [
           import('./features/module-c/module-c.routes')
             .then(m => m.moduleCRoutes),
       },
+      {
+        path: 'profile',
+        loadChildren: () =>
+          import('./features/profile/profile.route')
+            .then(m=>m.profileRoutes)
+      }
     ],
   },
   {

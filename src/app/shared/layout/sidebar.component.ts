@@ -8,7 +8,7 @@ import { selectSidebarCollapsed, selectMobileMenuOpen } from '../../core/store/l
 import { I18nService } from '../../core/i18n/i18n.service';
 
 interface NavItem {
-  labelKey: 'dashboard' | 'moduleA' | 'moduleB' | 'moduleC';
+  labelKey: 'dashboard' | 'moduleA' | 'moduleB' | 'moduleC' | 'profile';
   route:    string;
   icon:     string;
 }
@@ -18,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: 'moduleA',   route: '/module-a',  icon: 'layers'   },
   { labelKey: 'moduleB',   route: '/module-b',  icon: 'database' },
   { labelKey: 'moduleC',   route: '/module-c',  icon: 'settings' },
+  { labelKey: 'profile', route: '/profile', icon: 'test'}
 ];
 
 @Component({
